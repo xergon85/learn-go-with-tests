@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	dependacy "github.com/xergon85/learn-go-with-tests/dependecy"
+	dependency "github.com/xergon85/learn-go-with-tests/dependency"
 )
 
 func main() {
-	log.Fatal(http.ListenAndServe(":5001", http.HandlerFunc(dependacy.MyGreetHandler)))
+	log.Fatal(http.ListenAndServe(":5001", http.HandlerFunc(dependency.MyGreetHandler)))
 }

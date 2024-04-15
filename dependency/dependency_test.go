@@ -1,4 +1,4 @@
-package dependacy
+package dependency
 
 import (
 	"bytes"
