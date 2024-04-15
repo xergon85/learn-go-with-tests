@@ -1,11 +1,12 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"net/http"
 
-	hello "github.com/xergon85/learn-go-with-tests/helloworld"
+	dependacy "github.com/xergon85/learn-go-with-tests/dependecy"
 )
 
 func main() {
-	fmt.Println(hello.Hello("Aram", "French"))
+	log.Fatal(http.ListenAndServe(":5001", http.HandlerFunc(dependacy.MyGreetHandler)))
 }
