@@ -3,6 +3,8 @@ package slices
 import (
 	"reflect"
 	"testing"
+
+	"github.com/xergon85/learn-go-with-tests/generics"
 )
 
 func TestSum(t *testing.T) {
@@ -48,5 +50,37 @@ func TestSumAllTails(t *testing.T) {
 		got := SumAllTails([]int{}, []int{0, 9})
 		want := []int{0, 9}
 		checkSums(t, got, want)
+	})
+}
+
+func TestReduce(t *testing.T) {
+	t.Run("multiplication of all elements", func(t *testing.T) {
+		multiply := func(x, y int) int {
+			return x * y
+		}
+
+		generics.AssertEqual(t, Reduce([]int{1, 2, 3}, multiply, 1), 6)
+	})
+
+	t.Run("concat strings", func(t *testing.T) {
+		concat := func(a, b string) string {
+			return a + b
+		}
+
+		generics.AssertEqual(t, Reduce([]string{"a", "b", "c"}, concat, ""), "abc")
+	})
+}
+
+func TestFind(t *testing.T) {
+	t.Run("find first even number", func(t *testing.T) {
+		numbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+		firstEvenNumber, found := Find(numbers, func(x int) bool {
+			return x%2 == 0
+		})
+
+		generics.AssertTrue(t, found)
+		generics.AssertEqual(t, firstEvenNumber, 2)
+
 	})
 }
