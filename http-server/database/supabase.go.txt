@@ -1,0 +1,106 @@
+package database
+
+import (
+	"log"
+	"os"
+	"sync"
+
+	"github.com/joho/godotenv"
+
+	supa "github.com/nedpals/supabase-go"
+)
+
+func NewMSupaPlayerStore() *SupaPlayerStore {
+	client := connect()
+	store := getInitialShit(client)
+
+	return &SupaPlayerStore{
+		store:  store,
+		client: client,
+	}
+}
+
+type SupaPlayerStore struct {
+	store  map[string]Player
+	client *supa.Client
+	mu     sync.Mutex
+}
+
+func getInitialShit(c *supa.Client) map[string]Player {
+	var result []Player
+	err := c.DB.From("players").Select("*").Execute(&result)
+	if err != nil {
+		panic(err)
+	}
+
+	var store = make(map[string]Player, len(result))
+	for _, v := range result {
+		store[v.Name] = v
+	}
+
+	return store
+}
+
+func (i *SupaPlayerStore) GetPlayerScore(name string) int {
+	var result Player
+
+	// Get scorerino from store
+	player, found := i.store[name]
+
+	if !found {
+		// Check db
+		err := i.client.DB.From("players").Select("*").Eq("name", name).Execute(&result)
+		if err != nil {
+			// Not found!
+			player = i.createPlayer(name)
+			i.store[player.Name] = player
+		}
+	}
+
+	return player.Score
+}
+
+func (sps *SupaPlayerStore) createPlayer(name string) Player {
+	var result Player
+	row := Player{
+		ID: 0,
+		Name: name,
+		Score: 0,
+	}
+	err := sps.client.DB.From("players").Insert().Eq("name", name).Execute(&result)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
+func (i *SupaPlayerStore) RecordWin(name string) {
+	var result Player
+
+	// if exist update
+	// if not exist create
+	err := i.client.DB.From("players").Update("*").Eq("name", name).Execute(&result)
+	if err != nil {
+		panic(err)
+	}
+	i.store[name] = result.Score
+}
+
+type Player struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Score int    `json:"score"`
+}
+
+func connect() *supa.Client {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	supabaseUrl := os.Getenv("API_URL")
+	supabaseKey := os.Getenv("API_KEY")
+
+	return supa.CreateClient(supabaseUrl, supabaseKey)
+}
